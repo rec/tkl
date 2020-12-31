@@ -1,19 +1,30 @@
+# Run the code directly from the web page - if you dare!
+# Any evil code could be in there.  Only do this if you trust me,
+# github.com/rec
+#
+driver: https://github.com/rec/bpx/blob/master/bpx.py
+
+# Otherwise, you can download the bpx.py file that is currently there to your
+# own directory, make sure you trust it, and do this:
+#
+#  driver: bpx.py
+
+# Number of LEDs in the strip
+# This can be overriden with --shape
 shape: 50
 
 aliases:
   bpa: BiblioPixelAnimations.strip
-
-driver: https://github.com/rec/bpx/blob/master/bpx.py
 
 animation:
   typename: sequence
   run:
     fps: 30
 
-  length: 1
+  length: 2  # Run each animation for two seconds
+
   animations:
     - $bpa.Alternates
-    - $bpa.BinaryEpochClock.BEClock
     - $bpa.ColorChase
     - $bpa.ColorFade
     - $bpa.ColorPattern
