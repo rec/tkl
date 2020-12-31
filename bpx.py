@@ -6,12 +6,12 @@ class BPX(ServerDriver):
     A BiblioPixel driver for the xled driver for Twinkly™ lights.
     """
 
-    def __init__(self, num=32, xled_params_here=None, **kwds):
+    def __init__(self, num=32, use_white=False, xled_params_here=None, **kwds):
         """
         Args:
             num:  number of LEDs on the Twinkly.
 
-            four_color:
+            use_white:
                 False means three colors.
                 True means four colors, with white at the average of RGB.
                 A number means four colors, but scale the white level.
@@ -21,27 +21,27 @@ class BPX(ServerDriver):
 
             **kwds:  keywords passed to DriverBase.
         """
-        super().__init__(num, four_color=0, xled_params=None, **kwds)
+        super().__init__(num, xled_params=None, **kwds)
 
-        assert self.four_color >= 0
-        self.four_color = four_color
-        self.four_color_bytes = four_color is not False and bytearray(4 * n)
+        assert self.use_white >= 0
+        self.use_white = use_white
+        self.white_bytes = use_white is not False and bytearray(4 * n)
 
         # TODO: Initialize connection with xled here using xled_params
 
     def _send_packet(self):
-        if self.four_color_bytes:
-            buffer = self.four_color_bytes
+        if self.white_bytes:
+            buffer = self.white_bytes
 
             for i in range(self.numLEDs):
                 color = self._buf[3 * i: 3 * i + 3]
-                white = min(255, int(self.four_color * sum(color) / 3))
+                white = min(255, int(self.use_white * sum(color) / 3))
                 buffer[4 * i : 4 * i + 4] = (*color, white)
         else:
             buffer = self._buf
 
         # `buffer` is a bytearray looking like this:
-        #    RGBRGBRGB... if four_color is False
-        #    RGBWRGBWRGBW... if four_color is True, or any number
+        #    RGBRGBRGB... if use_white is False
+        #    RGBWRGBWRGBW... if use_white is True, or any number
 
         # TODO: send `buffer` as an update to xled here!
