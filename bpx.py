@@ -1,12 +1,15 @@
 from bibliopixel.drivers.driver_base import DriverBase
+import xled
 
 
-class BPX(ServerDriver):
+class BPX(DriverBase):
     """
     A BiblioPixel driver for the xled driver for Twinkly™ lights.
     """
 
-    def __init__(self, num=32, use_white=False, xled_params_here=None, **kwds):
+    def __init__(
+        self, use_white=False, ip_address=None, hw_address=None, **kwds
+    ):
         """
         Args:
             num:  number of LEDs on the Twinkly.
@@ -17,31 +20,36 @@ class BPX(ServerDriver):
                 A number means four colors, but scale the white level.
                 Scaling beyond 1 is possible but can result in clipping.
 
-            to_xled: placeholder
-
             **kwds:  keywords passed to DriverBase.
         """
-        super().__init__(num, xled_params=None, **kwds)
+        dd = xled.discover.discover()
+        self.control = xled.ControlInterface(
+            ip_address or dd.ip_address, hw_address or dd.hw_address,
+        )
+        self.control.set_mode("rt")
+
+        numLEDs = self.control.get_device_info()["number_of_led"]
+
+        super().__init__(numLEDs, **kwds)
 
         assert self.use_white >= 0
         self.use_white = use_white
-        self.white_bytes = use_white is not False and bytearray(4 * n)
-
-        # TODO: Initialize connection with xled here using xled_params
+        self.rgbw = use_white is not False and bytearray(4 * numLEDs)
 
     def _send_packet(self):
-        if self.white_bytes:
-            buffer = self.white_bytes
+        # Called on each BiblioPixel update
+        self.control.set_rt_message(self._buffer())
+        # xled.control.ControlInterface.set_rt_message() doesn't exist yet!
 
-            for i in range(self.numLEDs):
-                color = self._buf[3 * i: 3 * i + 3]
-                white = min(255, int(self.use_white * sum(color) / 3))
-                buffer[4 * i : 4 * i + 4] = (*color, white)
-        else:
-            buffer = self._buf
-
-        # `buffer` is a bytearray looking like this:
+    def _buffer(self):
+        # Returns a bytearray looking like this:
         #    RGBRGBRGB... if use_white is False
         #    RGBWRGBWRGBW... if use_white is True, or any number
 
-        # TODO: send `buffer` as an update to xled here!
+        if self.rgbw:
+            for i in range(self.numLEDs):
+                color = self._buf[3 * i : 3 * i + 3]
+                white = min(255, int(self.use_white * sum(color) / 3))
+                self.rgbw[4 * i : 4 * i + 4] = (*color, white)
+
+        return self.rgbw or self._buf
