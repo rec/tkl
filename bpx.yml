@@ -1,0 +1,23 @@
+shape: 50
+
+aliases:
+  bpa: BiblioPixelAnimations.strip
+
+driver: https://github.com/rec/bpx/blob/master/bpx.py
+
+
+animation:
+  typename: sequence
+  run:
+    fps: 30
+
+  length: 1
+  animations:
+    - $bpa.Alternates
+    - $bpa.BinaryEpochClock.BEClock
+    - $bpa.ColorChase
+    - $bpa.ColorFade
+    - $bpa.ColorPattern
+    - $bpa.ColorWipe
+    - $bpa.FireFlies
+    - $bpa.HalvesRainbow
