@@ -2,16 +2,17 @@
 # Any evil code could be in there.  Only do this if you trust me,
 # github.com/rec
 #
-driver: https://github.com/rec/bpx/blob/master/bpx.py
+# driver: bpx.py
 
 # Otherwise, you can download the bpx.py file that is currently there to your
 # own directory, make sure you trust it, and do this:
 #
-#  driver: bpx.py
+
+driver: bpx
 
 # Number of LEDs in the strip
 # This can be overriden with --shape
-shape: 50
+shape: 250
 
 aliases:
   bpa: BiblioPixelAnimations.strip
