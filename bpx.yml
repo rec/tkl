@@ -22,7 +22,7 @@ animation:
   run:
     fps: 30
 
-  length: 2  # Run each animation for two seconds
+  length: 5  # Run each animation for two seconds
 
   animations:
     - $bpa.Alternates

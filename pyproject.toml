@@ -4,4 +4,5 @@ skip-string-normalization = true
 target-version = ['py37']
 
 [tool.doks]
+command = true
 auto = true
