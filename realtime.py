@@ -93,3 +93,24 @@ def _packets(data, nleds, access_token, bytes_per_led):
             ]
             packet.append(packet_data)
             yield packets
+
+
+def _full_packet(nleds, access_token, bytes_per_led, message_size):
+    packet = bytearray(b'\x01')
+    packet.extend(base64.b64decode(access_token))
+    packet.extend(bytes([nleds]))
+    packet.extend(bytearray(message_size))
+    return packet
+
+
+def _partial_packet(i, nleds, access_token, bytes_per_led, message_size):
+    packet_data = data[:]
+    data = data[(900 // bytes_per_led) :]
+    packet = [
+        b'\x03',
+        base64.b64decode(access_token),
+        b'\x00\x00',
+        bytes([i]),
+    ]
+    packet.append(packet_data)
+    yield packets

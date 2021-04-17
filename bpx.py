@@ -1,7 +1,6 @@
 from bibliopixel.drivers.driver_base import DriverBase
 from bibliopixel.drivers.simpixel import SimPixel
-# from xled.realtime import RealtimeChannel
-from realtime import RealtimeChannel
+from xled.realtime import RealtimeChannel
 import xled
 
 
