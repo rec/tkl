@@ -12,7 +12,7 @@ driver: bpx
 
 # Number of LEDs in the strip
 # This can be overriden with --shape
-shape: 250
+# shape: 250
 
 aliases:
   bpa: BiblioPixelAnimations.strip
