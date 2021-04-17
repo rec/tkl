@@ -10,8 +10,10 @@ from __future__ import absolute_import
 import base64
 import math
 import socket
+from threading import Thread
 
 from xled.control import ControlInterface
+from queue import Queue
 
 #: realtime UDP port to send realtime frames to
 PORT = 7777
@@ -30,9 +32,32 @@ class RealtimeChannel(object):
         self.control = control
         self.nleds = nleds
         self.bytes_per_led = bytes_per_led
+        self.queue = Queue()
+        self.thread = None
 
     def start_realtime(self):
-        self.control.set_mode('rt')
+        if not self.thread:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.control.set_mode('rt')
+            self.thread = Thread(target=self._target, daemon=True)
+            self.thread.start()
+
+    def stop(self):
+        self.queue.put(None)
+
+    def __del__(self):
+        self.stop()
+
+    def _target(self):
+        while True:
+            data = self.queue.get()
+            if not data:
+                break
+            data_size = self.nleds * self.bytes_per_led
+            assert len(data) == data_size
+            token = self.control.session.access_token
+            for p in _packets(data, self.nleds, token, self.bytes_per_led):
+                self.sock.sendto(p, (self.control.host, PORT))
 
     def send_frame(self, data):
         """
@@ -42,14 +67,7 @@ class RealtimeChannel(object):
         :param bytearray data: byte array containing the raw frame data
         :rtype: None
         """
-        data_size = self.nleds * self.bytes_per_led
-        assert len(data) == data_size
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-            access_token = self.control.session.access_token
-            for packet in _packets(
-                data, self.nleds, access_token, self.bytes_per_led
-            ):
-                sock.sendto(packet, (self.control.host, PORT))
+        self.queue.put(data)
 
 
 def _packets(data, nleds, access_token, bytes_per_led):
