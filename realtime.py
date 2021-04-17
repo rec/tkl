@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 xled.realtime
 ~~~~~~~~~~~~~
@@ -15,8 +13,8 @@ import socket
 
 from xled.control import ControlInterface
 
-#: UDP port to send realtime frames to
-REALTIME_UDP_PORT_NUMBER = 7777
+#: realtime UDP port to send realtime frames to
+PORT = 7777
 
 
 class RealtimeChannel(object):
@@ -44,15 +42,17 @@ class RealtimeChannel(object):
         :param bytearray data: byte array containing the raw frame data
         :rtype: None
         """
-        data_size = self.nleds*self.bytes_per_led
+        data_size = self.nleds * self.bytes_per_led
         assert len(data) == data_size
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
             access_token = self.control.session.access_token
-            for packet in _packets(data, self.nleds, access_token):
-                sock.sendto(packet, (self.control.host, REALTIME_UDP_PORT_NUMBER))
+            for packet in _packets(
+                data, self.nleds, access_token, self.bytes_per_led
+            ):
+                sock.sendto(packet, (self.control.host, PORT))
 
 
-def _packets(data, nleds, access_token):
+def _packets(data, nleds, access_token, bytes_per_led):
     if len(data) < 900 and nleds < 256:
         # Send single frame
         packet = bytearray(b'\x01')
@@ -63,11 +63,15 @@ def _packets(data, nleds, access_token):
 
     else:
         # Send multi frame
-        packet_size = 900//self.bytes_per_led
-        for i in range(0, math.ceil(len(data)/packet_size)):
-            packet_data = data[:(900//self.bytes_per_led)]
-            data = data[(900//self.bytes_per_led):]
-            packet = [ b'\x03', base64.b64decode(access_token),
-                b'\x00\x00', bytes([i])]
+        packet_size = 900 // bytes_per_led
+        for i in range(0, math.ceil(len(data) / packet_size)):
+            packet_data = data[: (900 // bytes_per_led)]
+            data = data[(900 // bytes_per_led) :]
+            packet = [
+                b'\x03',
+                base64.b64decode(access_token),
+                b'\x00\x00',
+                bytes([i]),
+            ]
             packet.append(packet_data)
             yield packets
