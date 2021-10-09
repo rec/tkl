@@ -1,5 +1,6 @@
 from bibliopixel.drivers.driver_base import DriverBase
 from io import BytesIO
+from xled.control import HighControlInterface
 import xled
 
 
@@ -41,7 +42,7 @@ class BPX(DriverBase):
         if len(address) != 2:
             raise ValueError(f'Bad address {address}')
 
-        self.control = xled.ControlInterface(*address)
+        self.control = HighControlInterface(*address)
         self.info = self.control.get_device_info()
 
         self.actual_leds = self.info['number_of_led']
@@ -71,7 +72,4 @@ class BPX(DriverBase):
 
     def _send_packet(self):
         fp = BytesIO(self.buffer)
-        if self.use_socket:
-            self.control.set_rt_frame_socket(fp, version=self.version)
-        else:
-            self.control.set_rt_frame_rest(fp)
+        self.control.show_rt_frame(fp)
