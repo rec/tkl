@@ -1,10 +1,18 @@
 from bibliopixel.drivers.driver_base import DriverBase
-from xled.realtime import RealtimeChannel
+from io import BytesIO
 import xled
 
 
 class BPX(DriverBase):
-    def __init__(self, num=0, address=None, white_ratio=1, **kwds):
+    def __init__(
+        self,
+        num = 0,
+        address = None,
+        white_ratio = 1,
+        use_socket = False,
+        version = 3,
+        **kwds
+    ):
         """
         Args:
             address
@@ -20,12 +28,16 @@ class BPX(DriverBase):
             **kwds:  keywords passed to DriverBase.
         """
         self.white_ratio = white_ratio
+        self.use_socket = use_socket
+        self.version = version
 
         if not address:
             dd = xled.discover.discover()
             address = dd.ip_address, dd.hw_address,
+
         elif isinstance(address, str):
             address = address.split('/')
+
         if len(address) != 2:
             raise ValueError(f'Bad address {address}')
 
@@ -39,9 +51,6 @@ class BPX(DriverBase):
 
         assert self.colors_per_led in (1, 3, 4)
         self.buffer = bytearray(self.colors_per_led * self.actual_leds)
-
-        self.rtc = RealtimeChannel(self.control, 250, 3)
-        self.rtc.start_realtime()
 
     def _compute_packet(self):
         self._render()
@@ -61,4 +70,8 @@ class BPX(DriverBase):
                     self.buffer[4 * i : 4 * i + 4] = (*color, white)
 
     def _send_packet(self):
-        self.rtc.send_frame(self.buffer)
+        fp = BytesIO(self.buffer)
+        if self.use_socket:
+            self.control.set_rt_frame_socket(fp, version=self.version)
+        else:
+            self.control.set_rt_frame_rest(fp)
