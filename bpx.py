@@ -3,11 +3,15 @@ from io import BytesIO
 from xled.control import HighControlInterface
 import xled
 
+'183dc9 c454a9'
+PREFIX = 'Twinkly_'
+
 
 class BPX(DriverBase):
     def __init__(
         self,
         num = 0,
+        device_id = None,
         address = None,
         white_ratio = 1,
         use_socket = False,
@@ -33,8 +37,10 @@ class BPX(DriverBase):
         self.version = version
 
         if not address:
-            dd = xled.discover.discover()
-            address = dd.ip_address, dd.hw_address,
+            if device_id and not device_id.startswith(PREFIX):
+                device_id = PREFIX + device_id.upper()
+            dd = xled.discover.discover(device_id)
+            address = dd.ip_address, dd.hw_address
 
         elif isinstance(address, str):
             address = address.split('/')
