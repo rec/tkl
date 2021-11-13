@@ -1,10 +1,13 @@
 from bibliopixel.drivers.driver_base import DriverBase
+from datetime import timedelta
 from io import BytesIO
 from xled.control import HighControlInterface
+import sys
 import xled
+import time
 
-'183dc9 c454a9'
 PREFIX = 'Twinkly_'
+REPORT_TIME = 10
 
 
 class BPX(DriverBase):
@@ -16,6 +19,7 @@ class BPX(DriverBase):
         white_ratio = 1,
         use_socket = False,
         version = 3,
+        timeout = 5,
         **kwds
     ):
         """
@@ -36,11 +40,18 @@ class BPX(DriverBase):
         self.use_socket = use_socket
         self.version = version
 
+        # TODO: allow for controlling multiple device ID as one
         if not address:
             if device_id and not device_id.startswith(PREFIX):
                 device_id = PREFIX + device_id.upper()
-            dd = xled.discover.discover(device_id)
+            try:
+                dd = xled.discover.discover(device_id, timeout=timeout)
+            except Exception as e:
+                import traceback
+                print(e)
+                traceback.print_exc()
             address = dd.ip_address, dd.hw_address
+            print('Discovered', *address)
 
         elif isinstance(address, str):
             address = address.split('/')
@@ -58,9 +69,12 @@ class BPX(DriverBase):
 
         assert self.colors_per_led in (1, 3, 4)
         self.buffer = bytearray(self.colors_per_led * self.actual_leds)
+        self._last_check = self._last_ok = 0
 
     def _compute_packet(self):
         self._render()
+
+        # TODO: Fix the fact that these strings are counted from the middle!
         # TODO: use numpy
         if self.colors_per_led == 3:
             if len(self.buffer) >= len(self._buf):
@@ -78,4 +92,13 @@ class BPX(DriverBase):
 
     def _send_packet(self):
         fp = BytesIO(self.buffer)
-        self.control.show_rt_frame(fp)
+        t = time.time()
+        try:
+            self.control.show_rt_frame(fp)
+            self._last_check = self._last_ok = t
+        except Exception as e:
+            if not 'Network is down' in str(e):
+                raise
+            if t - self._last_check > REPORT_TIME:
+                dt = timedelta(seconds = t - self._last_ok)
+                print('Network has been down for', dt, file=sys.stderr)
