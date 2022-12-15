@@ -60,6 +60,7 @@ class BPX(DriverBase):
             raise ValueError(f'Bad address {address}')
 
         self.control = HighControlInterface(*address)
+        self.control.set_mode('rt')
         self.info = self.control.get_device_info()
 
         self.actual_leds = self.info['number_of_led']
@@ -94,7 +95,7 @@ class BPX(DriverBase):
         fp = BytesIO(self.buffer)
         t = time.time()
         try:
-            self.control.show_rt_frame(fp)
+            self.control.set_rt_frame_socket(fp, version=self.version)
             self._last_check = self._last_ok = t
         except Exception as e:
             if not 'Network is down' in str(e):
