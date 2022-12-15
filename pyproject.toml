@@ -9,7 +9,7 @@ auto = true
 
 [tool.poetry]
 name = "tkl"
-version = "0.8.1"
+version = "0.9.0"
 description = "A leds/bibliopixel driver for Twinkly lights"
 authors = ["Tom Ritchford <tom@swirly.com>"]
 license = "MIT"
