@@ -1,10 +1,13 @@
-bpx: BiblioPixel Twinkly driver
---------------------------------------
+tkl: Twinkly driver for `leds`/`Bibliopixel`
+-----------------------------------------------------
 
-Install using `pip install bpx`.
+Install using `pip install tkl`.
 
 Test from the command line with:
 
 .. code-block:: bash
 
-    bp '{driver: bpx, animation: BiblioPixelAnimations.strip.ColorChase}'
+    leds '{driver: tkl, animation: BiblioPixelAnimations.strip.ColorChase}'
+
+    # or for legacy systems using BiblioPixel
+    bp '{driver: tkl, animation: BiblioPixelAnimations.strip.ColorChase}'

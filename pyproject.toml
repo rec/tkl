@@ -8,7 +8,7 @@ command = true
 auto = true
 
 [tool.poetry]
-name = "bpx"
+name = "tkl"
 version = "0.8.1"
 description = "A leds/bibliopixel driver for Twinkly lights"
 authors = ["Tom Ritchford <tom@swirly.com>"]
@@ -20,7 +20,6 @@ python = "^3.8"
 leds = "^3.5.1"
 requests = "^2.28.1"
 xled = "^0.7.0"
-
 
 [build-system]
 requires = ["poetry-core"]

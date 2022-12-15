@@ -3,14 +3,14 @@ from datetime import timedelta
 from io import BytesIO
 from xled.control import HighControlInterface
 import sys
-import xled
 import time
+import xled
 
 PREFIX = 'Twinkly_'
 REPORT_TIME = 10
 
 
-class BPX(DriverBase):
+class Tkl(DriverBase):
     def __init__(
         self,
         num = 0,
